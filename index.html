@@ -12,6 +12,8 @@
             --danger-color: #dc3545;
             --drive-color: #198754; 
             --frame-color: #00e600; 
+            --voice-color: #17a2b8; /* 錄音按鈕顏色 */
+            --view-color: #6c757d;  /* 檢視按鈕顏色 */
         }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
@@ -20,19 +22,7 @@
             display: flex; justify-content: center; height: 100vh;
         }
 
-        #login-screen {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-color); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .login-box {
-            background: white; padding: 30px; border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 80%; max-width: 300px;
-        }
-        .login-input {
-            width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd;
-            border-radius: 8px; font-size: 18px; text-align: center;
-        }
+        /* 移除登入相關 CSS */
 
         #status-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -54,7 +44,7 @@
             border-radius: 5px; margin-top: 15px; cursor: pointer; display: none; font-size: 16px;
         }
 
-        #app-screen { display: none; width: 100%; max-width: 500px; height: 100%; overflow-y: auto; padding: 20px; box-sizing: border-box; }
+        #app-screen { display: block; width: 100%; max-width: 500px; height: 100%; overflow-y: auto; padding: 20px; box-sizing: border-box; }
         
         .author-header {
             text-align: center; font-size: 0.75rem; color: #999; padding-bottom: 10px;
@@ -170,18 +160,43 @@
             font-size: 0.8rem; background-color: #fff; color: #555; outline: none;
         }
 
-        .btn-voice { 
-            width: 100%; padding: 12px; border: none; border-radius: 8px; 
-            background-color: #17a2b8; color: white; font-weight: bold; cursor: pointer;
-            display: flex; justify-content: center; align-items: center; gap: 8px;
+        /* --- [優化] 底部按鈕 2x2 格狀排列 --- */
+        .footer-btns { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; /* 兩欄 */
+            gap: 15px; /* 間距 */
+            margin-top: 20px; 
+            padding-bottom: 40px;
         }
+
+        .btn-square { 
+            width: 100%; 
+            aspect-ratio: 1 / 1; /* 正方形 */
+            padding: 10px; 
+            border: none; 
+            border-radius: 16px; 
+            font-size: 16px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            color: white; 
+            display: flex;
+            flex-direction: column; /* 垂直排列 */
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+        .btn-square:active { transform: scale(0.98); }
+
+        .btn-voice { background-color: var(--voice-color); }
         .btn-voice.recording { background-color: var(--danger-color); animation: pulse 1s infinite; }
 
-        .footer-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; padding-bottom: 30px;}
-        .btn-main { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; color: white; }
         .btn-save { background-color: var(--primary-color); }
-        .btn-view { background-color: #6c757d; }
+        .btn-view { background-color: var(--view-color); }
         .btn-drive { background-color: var(--drive-color); }
+
+        .btn-icon-large { font-size: 2rem; margin-bottom: 5px; } /* 加大圖示 */
 
         /* --- 設定彈窗 --- */
         #settings-modal {
@@ -205,15 +220,6 @@
 </head>
 <body>
 
-    <div id="login-screen">
-        <div class="login-box">
-            <h3>🔒 Login (登入)</h3>
-            <p style="color:#666; font-size:0.9em;">Please enter password<br>(請輸入密碼)</p>
-            <input type="password" id="loginPass" class="login-input" placeholder="Password">
-            <button class="btn-main btn-save" onclick="checkLogin()">Login (進入)</button>
-        </div>
-    </div>
-
     <div id="status-modal">
         <div class="status-box">
             <div id="status-spinner" class="spinner"></div>
@@ -228,9 +234,8 @@
         <div class="author-header">Author: DERER LIN</div>
 
         <div class="header">
-            <div class="header-btn" onclick="logout()" title="Lock / Logout (鎖定/登出)">🔒</div>
-            <div class="header-title">
-                <h2>Key Notes Recorder<br>重點事項紀錄</h2>
+            <div style="width:40px;"></div> <div class="header-title">
+                <h2>OFFICE Daily Work Report<br>OFFICE 工作日誌</h2>
             </div>
             <div class="header-btn" onclick="openSettings()" title="Settings (設定)">⚙️</div>
         </div>
@@ -257,7 +262,6 @@
             <textarea id="noteInput" placeholder="After taking a photo, type here or use voice... (拍照後，在此輸入或使用語音)"></textarea>
             
             <div class="voice-controls">
-                
                 <div class="quick-lang-container">
                     <span class="lang-icon">🌐</span>
                     <select id="main-lang" class="small-select" onchange="syncLanguage('main')">
@@ -267,10 +271,7 @@
                         <option value="hi-IN">हिन्दी (Hindi)</option>
                     </select>
                 </div>
-
-                <button type="button" class="btn-voice" id="voiceBtn" onclick="toggleVoice()">
-                    🎤 Start Voice (開始錄音)
-                </button>
+                
                 <div style="text-align: right; font-size: 0.9em; color: #555; margin-top: 8px; font-weight: bold;">
                     Time left: <span id="display-timeout" style="color:#d63384; font-size:1.1em;">10</span> s
                 </div>
@@ -278,9 +279,25 @@
         </div>
 
         <div class="footer-btns">
-            <button class="btn-main btn-save" id="saveBtn" onclick="saveToCloud()">💾 Save to Cloud (存檔至雲端)</button>
-            <button class="btn-main btn-view" onclick="viewExcel()">📊 View Excel (檢視 Excel)</button>
-            <button class="btn-main btn-drive" onclick="viewDriveFolder()">📂 View Photos (檢視雲端照片)</button>
+            <button type="button" class="btn-square btn-voice" id="voiceBtn" onclick="toggleVoice()">
+                <div class="btn-icon-large">🎤</div>
+                <div>Start Voice<br>(開始錄音)</div>
+            </button>
+
+            <button class="btn-square btn-save" id="saveBtn" onclick="saveToCloud()">
+                <div class="btn-icon-large">💾</div>
+                <div>Save to Cloud<br>(存檔至雲端)</div>
+            </button>
+            
+            <button class="btn-square btn-view" onclick="viewExcel()">
+                <div class="btn-icon-large">📊</div>
+                <div>View Excel<br>(檢視 Excel)</div>
+            </button>
+            
+            <button class="btn-square btn-drive" onclick="viewDriveFolder()">
+                <div class="btn-icon-large">📂</div>
+                <div>View Photos<br>(檢視雲端照片)</div>
+            </button>
         </div>
     </div>
 
@@ -291,11 +308,6 @@
                 <button onclick="closeSettings()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">&times;</button>
             </div>
             
-            <div class="modal-group" style="background: #f9f9f9; padding: 10px; border-radius: 8px; border: 1px dashed #ccc;">
-                <label style="color:#d63384;">🔑 Login Password (修改登入密碼)</label>
-                <input type="text" id="set-password" class="modal-input" placeholder="Current: 1234">
-            </div>
-
             <div class="modal-group">
                 <label>1. Voice Timeout (錄音總秒數)</label>
                 <input type="number" id="set-timeout" class="modal-input" value="10">
@@ -332,16 +344,14 @@
                 <p>✅ Cloud Paths are Locked (System Mode)</p>
             </div>
 
-            <button class="btn-main btn-save" onclick="saveSettings()">Save Settings (儲存設定)</button>
+            <button class="btn-square btn-save" style="aspect-ratio: auto; height: 50px;" onclick="saveSettings()">Save Settings (儲存設定)</button>
         </div>
     </div>
 
 <script>
     // ================= 初始化 =================
-    const DEFAULT_PASS = "1234"; 
+    // [移除] DEFAULT_PASS 與密碼相關邏輯
     
-    // --- 這裡是你要求的寫死路徑 (FIXED PATHS) ---
-    // 我已經將你提供的連結轉換成對應的 ID 並固定於此。
     const FIXED_SCRIPT_ID = "AKfycbyeaH92L9F2XgSxiYDa4twuYij9-CQ8xggDL1JcclH8jH_UEJB_XEFzVIsn1XopyzEkIA";
     const FIXED_SHEET_ID = "1SuuMVdfpLq720Yd0trlxWoU9f-aBCfR4vbJZ-0GfyIU";
     const FIXED_FOLDER_ID = "1Nlafez9Eh1HZ2qpU6YDKe12SBhxTDx3q";
@@ -352,48 +362,23 @@
     // 錄音狀態
     let isRecording = false; 
     let isManualStop = false; 
-    let voiceTimer = null;          
-    let countdownInterval = null;   
+    let voiceTimer = null;           
+    let countdownInterval = null;    
     let punctuationTimer = null; 
     let timeLeft = 0; 
     let snapshotText = ""; 
 
     window.onload = function() {
-        if(!localStorage.getItem("app_password")) {
-            localStorage.setItem("app_password", DEFAULT_PASS);
-        }
-        const isLoggedIn = localStorage.getItem("isLoggedIn");
-        if(isLoggedIn === "true") {
-            showApp();
-        } else {
-            document.getElementById('login-screen').style.display = 'flex';
-        }
+        // [移除] 檢查登入狀態，直接顯示 APP
+        showApp();
         loadSettingsToUI();
     };
 
-    function checkLogin() {
-        const input = document.getElementById('loginPass').value;
-        const storedPass = localStorage.getItem("app_password");
-        if(input === storedPass) {
-            localStorage.setItem("isLoggedIn", "true");
-            showApp();
-        } else {
-            alert("Wrong Password! (密碼錯誤)");
-        }
-    }
-
-    function logout() {
-        if(confirm("Lock and logout?\n(確定要鎖定並登出嗎？)")) {
-            localStorage.removeItem("isLoggedIn"); 
-            document.getElementById('app-screen').style.display = 'none';
-            document.getElementById('login-screen').style.display = 'flex'; 
-            document.getElementById('loginPass').value = ""; 
-            closeSettings();
-        }
-    }
+    // [移除] checkLogin()
+    // [移除] logout()
 
     function showApp() {
-        document.getElementById('login-screen').style.display = 'none';
+        // [移除] 切換顯示 login-screen
         document.getElementById('app-screen').style.display = 'block';
         applySettings(); 
     }
@@ -419,35 +404,13 @@
         localStorage.setItem("cfg_lang", val);
     }
 
-    // 雖然現在寫死了，但保留此函數以防未來需要
-    function extractId(input) {
-        if (!input) return "";
-        input = input.trim();
-        if (input.includes("script.google.com")) {
-            const match = input.match(/\/s\/([a-zA-Z0-9-_]+)\/exec/);
-            return match ? match[1] : input;
-        }
-        if (input.includes("docs.google.com")) {
-            const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
-            return match ? match[1] : input;
-        }
-        if (input.includes("drive.google.com")) {
-            const match = input.match(/\/folders\/([a-zA-Z0-9-_]+)/);
-            return match ? match[1] : input;
-        }
-        return input;
-    }
-
     function saveSettings() {
-        const newPass = document.getElementById('set-password').value;
+        // [移除] 密碼儲存
         const timeout = document.getElementById('set-timeout').value;
         const warning = document.getElementById('set-warning').value;
         const lang = document.getElementById('set-lang').value; 
         const ratio = document.getElementById('set-ratio').value;
 
-        if(newPass.trim() === "") { alert("Password cannot be empty!"); return; }
-
-        localStorage.setItem("app_password", newPass); 
         localStorage.setItem("cfg_timeout", timeout);
         localStorage.setItem("cfg_warning", warning);
         localStorage.setItem("cfg_lang", lang);
@@ -461,7 +424,7 @@
     }
 
     function loadSettingsToUI() {
-        document.getElementById('set-password').value = localStorage.getItem("app_password");
+        // [移除] 密碼讀取
         document.getElementById('set-timeout').value = localStorage.getItem("cfg_timeout") || "10";
         document.getElementById('set-warning').value = localStorage.getItem("cfg_warning") || "3";
         const savedLang = localStorage.getItem("cfg_lang") || "cmn-Hant-TW";
@@ -553,7 +516,7 @@
         }
     }
 
-    // ================= 語音功能 (修正：標點遺失問題) =================
+    // ================= 語音功能 =================
     function toggleVoice() {
         if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
             alert("Browser not supported"); return;
@@ -576,9 +539,9 @@
         isRecording = true;
         isManualStop = false; 
         document.getElementById('voiceBtn').classList.add('recording');
-        document.getElementById('voiceBtn').innerText = "🛑 Stop";
+        // 更新按鈕文字
+        document.getElementById('voiceBtn').innerHTML = '<div class="btn-icon-large">🛑</div><div>Stop Voice<br>(停止錄音)</div>';
         
-        // 建立快照
         snapshotText = document.getElementById('noteInput').value;
         if(snapshotText.length > 0 && !snapshotText.endsWith(" ")) {
             snapshotText += " ";
@@ -631,18 +594,15 @@
             
             if(currentSessionText.trim().length > 0) {
                 punctuationTimer = setTimeout(() => {
-                    // 計時器觸發：停頓1秒後切斷
                     recognition.stop(); 
                 }, 1000);
             }
         };
 
-        // 5. 強制不中斷 & 自動重啟邏輯 (含補標點)
         recognition.onend = function() {
             if(punctuationTimer) clearTimeout(punctuationTimer);
 
             if (isRecording && !isManualStop && timeLeft > 0) {
-                // 檢查是否需要補標點
                 let currentVal = document.getElementById('noteInput').value.trim();
                 if(currentVal.length > 0) {
                     const lastChar = currentVal.slice(-1);
@@ -655,7 +615,6 @@
                     }
                 }
 
-                // 更新快照
                 snapshotText = document.getElementById('noteInput').value;
                 if(snapshotText.length > 0 && !snapshotText.endsWith(" ")) {
                     snapshotText += " "; 
@@ -685,7 +644,8 @@
         if(punctuationTimer) clearTimeout(punctuationTimer);
         
         document.getElementById('voiceBtn').classList.remove('recording');
-        document.getElementById('voiceBtn').innerText = "🎤 Start Voice (開始錄音)";
+        // 還原按鈕文字
+        document.getElementById('voiceBtn').innerHTML = '<div class="btn-icon-large">🎤</div><div>Start Voice<br>(開始錄音)</div>';
         
         const noteInput = document.getElementById('noteInput');
         noteInput.classList.remove('anim-red', 'anim-purple', 'anim-green');
@@ -719,11 +679,7 @@
 
     function saveToCloud() {
         const note = document.getElementById('noteInput').value;
-        
-        // --- 使用寫死的 Folder ID ---
         const folderId = FIXED_FOLDER_ID;
-        
-        // --- 使用寫死的 Script ID ---
         const scriptUrl = `https://script.google.com/macros/s/${FIXED_SCRIPT_ID}/exec`;
 
         if(!processedImageBase64 && !note) {
@@ -760,18 +716,15 @@
     }
 
     function viewExcel() {
-        // --- 使用寫死的 Sheet ID ---
         const url = `https://docs.google.com/spreadsheets/d/${FIXED_SHEET_ID}/edit`;
         window.open(url, '_blank');
     }
 
     function viewDriveFolder() {
-        // --- 使用寫死的 Folder ID ---
         const folderId = FIXED_FOLDER_ID;
         if(folderId && folderId.trim() !== "") {
             window.open("https://drive.google.com/drive/folders/" + folderId, '_blank');
         } else {
-            // Fallback (理論上不會發生，因為已經寫死 ID 了)
             if(confirm("Folder ID not set. Open Google Drive Root?\n(尚未設定資料夾 ID，要開啟雲端硬碟根目錄嗎？)")) {
                 window.open("https://drive.google.com/drive/my-drive", '_blank');
             }
@@ -781,4 +734,3 @@
 
 </body>
 </html>
-
